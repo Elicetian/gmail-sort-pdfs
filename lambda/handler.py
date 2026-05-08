@@ -77,7 +77,6 @@ Réponds UNIQUEMENT avec un objet JSON valide, sans markdown, sans texte autour 
 # ─── SSM ─────────────────────────────────────────────────────────────────────
 
 def load_params() -> dict:
-    log.info("SSM: chargement des paramètres")
     ssm = boto3.client("ssm")
     names = [
         f"{SSM_PREFIX}/google/client_id",
