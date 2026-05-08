@@ -41,6 +41,16 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: eu-west-1
 
+      - name: Build Lambda package
+        run: |
+          mkdir -p lambda_build
+          uv pip install -r lambda/requirements.txt \
+            --target lambda_build/ \
+            --python-version 3.12 \
+            --python-platform x86_64-unknown-linux-gnu \
+            --quiet
+          cp lambda/handler.py lambda_build/
+
       - name: Terraform init
         run: terraform init -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}"
 
