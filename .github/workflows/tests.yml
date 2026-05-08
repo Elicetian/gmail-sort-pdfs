@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: pip install pytest pytest-cov
+
+      - name: Run tests with coverage
+        run: python -m pytest
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: astral-sh/setup-uv@v8.1.0
+
+      - uses: hashicorp/setup-terraform@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-1
+
+      - name: Build Lambda package
+        run: |
+          mkdir -p lambda_build
+          uv pip install -r lambda/requirements.txt \
+            --target lambda_build/ \
+            --python-version 3.12 \
+            --python-platform x86_64-unknown-linux-gnu \
+            --quiet
+          cp lambda/handler.py lambda_build/
+
+      - name: Terraform init
+        run: terraform init -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}"
+
+      - name: Terraform apply
+        run: terraform apply -auto-approve
