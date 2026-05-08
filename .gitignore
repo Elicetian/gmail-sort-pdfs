@@ -1,0 +1,19 @@
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfplan
+lambda_build/
+lambda.zip
+backend.hcl
+
+# Tests
+__pycache__/
+.coverage
+.pytest_cache/
+
+# Terraform vars (contiennent les IDs Drive et l'account ID)
+terraform.tfvars
+
+# Claude Code
+.claude/
